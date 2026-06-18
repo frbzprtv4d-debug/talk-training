@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程顾问谈单模拟训练</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #fff; min-height: 100vh; font-size: 14px; line-height: 1.5; }
+.login-page { display: none; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; }
+.login-page.active { display: flex; }
+.login-box { background: #1a1a1a; padding: 30px; border-radius: 12px; width: 90%; max-width: 360px; }
+.login-box h2 { text-align: center; margin-bottom: 8px; color: #ffab00; font-size: 20px; }
+.login-subtitle { text-align: center; font-size: 13px; color: #888; margin-bottom: 20px; }
+.price-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid #333; }
+.price-section h3 { text-align: center; font-size: 14px; color: #aaa; margin-bottom: 16px; }
+.price-cards { display: flex; gap: 12px; margin-bottom: 16px; }
+.price-card { flex: 1; background: #252525; border-radius: 8px; padding: 12px; text-align: center; }
+.price-card h4 { font-size: 14px; color: #fff; margin-bottom: 8px; }
+.price-count { font-size: 12px; color: #888; margin-bottom: 4px; }
+.price-amount { font-size: 18px; color: #ffab00; font-weight: bold; }
+.price-tip { text-align: center; font-size: 12px; color: #666; }
+.login-input { width: 100%; padding: 12px; background: #252525; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 14px; margin-bottom: 12px; }
+.login-btn { width: 100%; padding: 12px; background: #ffab00; color: #000; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-error { color: #f44; text-align: center; margin-top: 10px; font-size: 13px; }
+.main-page { display: none; }
+.main-page.active { display: block; }
+.topbar { background: #1a1a1a; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a2a; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 40px; background: #ffab00; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #000; font-weight: bold; }
+.topbar-title h1 { font-size: 18px; font-weight: bold; }
+.topbar-title p { font-size: 12px; color: #888; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4caf50; }
+.status-dot { width: 8px; height: 8px; background: #4caf50; border-radius: 50%; }
+.remaining { font-size: 13px; color: #ffab00; }
+.logout-btn { background: transparent; color: #888; border: 1px solid #333; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.case-list-page { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+.case-list-page.active { display: block; }
+.page-title { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+.page-desc { font-size: 13px; color: #888; margin-bottom: 20px; }
+.case-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1100px) { .case-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 800px) { .case-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .case-grid { grid-template-columns: 1fr; } }
+.case-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px; cursor: pointer; transition: 0.2s; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+.case-card:hover { border-color: #ffab00; transform: translateY(-2px); }
+.case-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.case-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+.case-info h3 { font-size: 15px; font-weight: 300; margin-bottom: 4px; }
+.case-info p { font-size: 11px; font-weight: 300; color: #888; }
+.case-desc { font-size: 12px; font-weight: 300; color: #aaa; margin-bottom: 8px; }
+.case-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.case-tag { background: #252525; color: #aaa; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 300; }
+.case-emotion { font-size: 11px; font-weight: 300; color: #666; margin-bottom: 10px; line-height: 1.4; }
+.start-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: #ffab00; border: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 300; cursor: pointer; width: 100%; transition: 0.2s; }
+.start-btn:hover { color: #ffc933; }
+.training-page { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #121212; }
+.training-page.active { display: flex; }
+.info-panel { width: 300px; background: #1a1a1a; border-right: 1px solid #2a2a2a; overflow-y: auto; padding: 16px; }
+.info-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #2a2a2a; }
+.info-avatar { width: 48px; height: 48px; border-radius: 50%; background: #ffab00; color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+.info-name { font-size: 18px; font-weight: 300; }
+.info-status { font-size: 12px; font-weight: 300; color: #888; margin-top: 4px; }
+.info-age { font-size: 11px; color: #555; }
+.info-section { margin-bottom: 14px; }
+.info-section h4 { font-size: 12px; font-weight: 300; color: #aaa; margin-bottom: 6px; }
+.info-section p { font-size: 13px; font-weight: 300; color: #ccc; line-height: 1.6; }
+.case-bg-box { background: #222; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 300; color: #aaa; line-height: 1.6; }
+.concern-item, .objection-item { background: #222; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 300; color: #aaa; margin-bottom: 6px; }
+.info-product { background: transparent; color: #aaa; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 300; border: 1px solid #333; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
+.info-actions { display: flex; gap: 8px; margin-top: 16px; }
+.info-actions button { flex: 1; padding: 10px; background: transparent; border: 1px solid #333; color: #888; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.chat-panel { flex: 1; display: flex; flex-direction: column; }
+.chat-header { padding: 12px 16px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; display: flex; justify-content: space-between; align-items: center; }
+.chat-title { font-size: 16px; font-weight: bold; }
+.chat-count { font-size: 12px; color: #ffab00; margin-left: 8px; }
+.chat-tools { display: flex; gap: 6px; }
+.chat-tools button { padding: 6px 10px; background: #252525; border: none; color: #aaa; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
+.message { margin-bottom: 12px; max-width: 90%; }
+.message.parent { margin-right: auto; text-align: left; }
+.message.consultant { margin-left: auto; text-align: right; }
+.msg-content { padding: 8px 0; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+.message.parent .msg-content { color: #aaa; font-style: italic; }
+.message.consultant .msg-content { color: #fff; font-style: normal; }
+.chat-input-area { padding: 16px 20px; background: #1a1a1a; border-top: 1px solid #2a2a2a; display: flex; align-items: center; gap: 12px; min-height: 60px; }
+.chat-input-area textarea { flex: 1; padding: 14px 18px; background: transparent; border: 1px solid #333; border-radius: 26px; color: #fff; font-size: 15px; resize: none; height: 48px; }
+.chat-input-area textarea:focus { border-color: #ffab00; outline: none; }
+.input-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.voice-btn { width: 48px; height: 48px; background: transparent; border: 1px solid #333; color: #888; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.voice-btn:hover { border-color: #ffab00; color: #ffab00; }
+.send-btn { padding: 0 20px; height: 48px; background: #ffab00; border: none; border-radius: 24px; color: #000; font-size: 15px; font-weight: 500; cursor: pointer; }
+.send-btn:hover { background: #ffc933; }
+</style>
+</head>
+<body>
+<div id="login-page" class="login-page active">
+<div class="login-box">
+<h2>课程顾问谈单模拟训练</h2>
+<p class="login-subtitle">AI模拟家长对话，实战训练谈单技巧，即时点评助你提升</p>
+<input type="text" id="card-input" class="login-input" placeholder="输入卡密" maxlength="20">
+<button class="login-btn" id="login-btn" type="button" onclick="doLogin()">激活</button>
+<p id="login-error" class="login-error"></p>
+<div class="price-section">
+<h3>卡密类型与价格</h3>
+<div class="price-cards">
+<div class="price-card">
+<h4>畅练卡</h4>
+<p class="price-count">80次训练</p>
+<p class="price-amount">¥59.9</p>
+</div>
+<div class="price-card">
+<h4>体验卡</h4>
+<p class="price-count">10次训练</p>
+<p class="price-amount">¥9.9</p>
+</div>
+</div>
+<p class="price-tip">如需购买卡密，请添加微信：xlmyhz001</p>
+</div>
+</div>
+</div>
+<div id="main-page" class="main-page">
+<div class="topbar">
+<div class="topbar-left"><div class="logo">谈</div><div class="topbar-title"><h1>课程顾问谈单模拟训练</h1><p>AI 扮演家长，练习你的销售话术和技巧</p></div></div>
+<div class="topbar-right"><div class="status"><span class="status-dot"></span><span>在线</span></div><div class="remaining">剩余 <span id="remaining-count">--</span> 次</div><button class="logout-btn" onclick="doLogout()">退出</button></div>
+</div>
+<div id="case-list-page" class="case-list-page">
+<h2 class="page-title">选择训练案例</h2>
+<p class="page-desc">每个案例对应不同的家长角色和谈单难度，选择一个开始练习</p>
+<div id="case-list" class="case-grid"></div>
+</div>
+</div>
+<div id="training-page" class="training-page">
+<div class="info-panel">
+<div class="info-header"><div class="info-avatar" id="info-avatar"></div><div><div class="info-name" id="info-name"></div><div class="info-status" id="info-status"></div><div class="info-age" id="info-age"></div></div></div>
+<div class="info-section"><h4>📋 案例背景</h4><div class="case-bg-box" id="case-bg-box"></div></div>
+<div class="info-section"><h4>👤 孩子</h4><p id="info-child"></p></div>
+<div class="info-section"><h4>💡 性格特点</h4><p id="info-personality"></p></div>
+<div class="info-section"><h4>🎯 关注点</h4><div id="info-concerns"></div></div>
+<div class="info-section"><h4>📚 可推产品</h4><div id="info-products"></div></div>
+<div class="info-section"><h4>⚠️ 潜在异议</h4><div id="info-objections"></div></div>
+<div class="info-actions"><button onclick="showCaseList()">🔄 切换案例</button><button onclick="doLogout()">🚪 退出</button></div>
+</div>
+<div class="chat-panel">
+<div class="chat-header"><div><span class="chat-title" id="chat-title"></span><span class="chat-count">对话中 <span id="chat-count">0</span>次</span></div><div class="chat-tools"><button onclick="callCoach()">🎯 召唤教练</button><button onclick="endTraining()">⏹ 结束训练</button><button onclick="exportPDF()">📄 导出PDF</button></div></div>
+<div class="chat-messages" id="chat-messages"></div>
+<div class="chat-input-area">
+<textarea id="user-input" placeholder="以课程顾问身份回复..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+<div class="input-actions"><button class="voice-btn" onclick="toggleVoice()" title="语音输入"><img src="/static/mic-icon.png" width="24" height="24"/></button><button class="send-btn" onclick="sendMessage()">发送</button></div>
+</div>
+</div>
+</div>
+<div id="feedback-modal" class="feedback-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:300;overflow-y:auto;padding:20px;">
+<div style="background:#fff;color:#000;padding:30px;max-width:800px;margin:20px auto;border-radius:12px;font-family:Microsoft YaHei,sans-serif;font-size:14px;line-height:1.8;max-height:80vh;overflow-y:auto;">
+<h2 style="color:#ffab00;text-align:center;font-size:22px;margin-bottom:10px;">📊 训练点评报告</h2>
+<p style="text-align:center;color:#000;margin-bottom:20px;">作为一名专业的销售培训教练，我将对这段模拟谈单对话进行详细、客观的点评。</p>
+<hr style="border:1px solid #eee;margin:20px 0;">
+<pre id="feedback-text" style="white-space:pre-wrap;font-size:14px;line-height:1.8;color:#000;font-family:Microsoft YaHei,sans-serif;"></pre>
+<div style="display:flex;gap:15px;margin-top:25px;">
+<button style="flex:1;padding:12px;background:#ffab00;border:none;border-radius:6px;cursor:pointer;font-size:14px;color:#000;font-weight:bold;" onclick="continueTraining()">继续对话</button>
+<button style="flex:1;padding:12px;background:transparent;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:14px;color:#666;" onclick="restartTraining()">重新选择案例</button>
+</div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><div id="coach-hint-modal" style="display:none;position:absolute;bottom:120px;left:0;right:0;z-index:200;padding:0 16px;">
+<div style="background:rgba(30,30,30,0.95);color:#fff;padding:16px;border-radius:12px;font-family:Microsoft YaHei,sans-serif;font-size:13px;line-height:1.6;position:relative;margin:0 auto;">
+<div style="position:absolute;top:6px;right:8px;font-size:14px;cursor:pointer;color:#666;font-weight:lighter;" onclick="closeCoachHint()">✕</div>
+<div style="font-size:12px;color:#ffab00;margin-bottom:8px;font-weight:bold;">🎯 销售教练建议</div><pre id="coach-hint-text" style="white-space:pre-wrap;font-size:12px;line-height:1.6;color:#fff;font-family:Microsoft YaHei,sans-serif;max-height:300px;overflow-y:auto;"></pre></div>
+<pre id="coach-hint-text" style="white-space:pre-wrap;font-size:12px;line-height:1.6;color:#eee;font-family:Microsoft YaHei,sans-serif;max-height:300px;overflow-y:auto;"></pre>
+</div>
+</div>
+<script>
+var currentCase=null,conversation=[],cases=[],currentCard='',remainingCount=0,isRecording=false,recognition=null,sessionCharged=false;
+
+async function doLogin(){
+var card=document.getElementById('card-input').value.trim().toUpperCase();
+if(!card){document.getElementById('login-error').innerHTML='请输入卡密';return;}
+document.getElementById('login-error').innerHTML='正在激活...';
+try{
+var res=await fetch('/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({card:card})});
+var data=await res.json();
+if(data.success){
+currentCard=card;
+remainingCount=data.remaining;
+document.getElementById('login-page').classList.remove('active');
+document.getElementById('main-page').classList.add('active');
+document.getElementById('remaining-count').innerHTML=remainingCount===-1?'无限':remainingCount;
+if(remainingCount===0){document.getElementById('login-error').innerHTML='训练次数已用完';return;}
+await loadCases();
+}else{
+document.getElementById('login-error').innerHTML=data.error||'激活失败';
+}
+}catch(err){
+document.getElementById('login-error').innerHTML='网络错误';
+}
+}
+function doLogout(){
+document.getElementById('main-page').classList.remove('active');
+document.getElementById('case-list-page').classList.remove('active');
+document.getElementById('training-page').classList.remove('active');
+document.getElementById('login-page').classList.add('active');
+document.getElementById('card-input').value='';
+conversation=[];currentCase=null;sessionCharged=false;
+}
+async function loadCases(){
+var res=await fetch('/api/cases');
+var data=await res.json();
+cases=data.cases;
+document.getElementById('case-list-page').classList.add('active');
+renderCases();
+}
+function renderCases(){
+var el=document.getElementById('case-list');
+el.innerHTML='';
+cases.forEach(function(c){
+var div=document.createElement('div');
+div.className='case-card';
+div.onclick=function(){
+if(remainingCount!==-1 && remainingCount <= 0){
+alert('训练次数已用完');return;}
+startTraining(c.id);
+};
+var childInfo=c.child+' '+c.child_grade;
+var tags=c.tags&&c.tags.length?c.tags:[];
+var emotion=c.emotion||'';
+div.innerHTML='<div class="case-header"><div class="case-avatar">'+(c.avatar?'<img src="/static/'+c.avatar+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">':'<div style="width:44px;height:44px;border-radius:50%;background:#ffab00;color:#000;display:flex;align-items:center;justify-content:center;font-weight:bold;">'+(c.parent?c.parent.charAt(0):'?'))+'</div><div class="case-info"><h3>'+c.name+'</h3><p>'+c.parent+' | '+childInfo+'</p></div></div><div class="case-desc">'+c.case_bg+'</div><div class="case-tags">'+tags.map(function(t){return'<span class="case-tag">'+t+'</span>'}).join('')+'</div><div class="case-emotion">开场情绪：'+emotion+'</div><button class="start-btn">开始训练 →</button>';
+el.appendChild(div);
+});
+}
+async function startTraining(caseId){
+if(remainingCount!==-1 && remainingCount <= 0){alert('训练次数已用完');showCaseList();return;}
+conversation=[];
+document.getElementById('chat-messages').innerHTML='';
+var res=await fetch('/api/case/'+caseId);
+currentCase=await res.json();
+conversation=[{role:'parent',content:currentCase.intro}];
+document.getElementById('case-list-page').classList.remove('active');
+document.getElementById('training-page').classList.add('active');
+document.getElementById('chat-title').innerHTML=currentCase.name+' - '+currentCase.parent;
+document.getElementById('chat-count').innerHTML=remainingCount===-1?'无限':remainingCount;
+updateInfoPanel();
+addMessage('parent',currentCase.intro);
+}
+function updateInfoPanel(){
+document.getElementById('info-avatar').innerHTML=currentCase.avatar?'<img src="/static/'+currentCase.avatar+'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">':currentCase.parent?currentCase.parent.charAt(0):'?';
+document.getElementById('info-name').innerHTML=currentCase.parent;
+document.getElementById('info-status').innerHTML=currentCase.parent_info&&currentCase.parent_info.occupation?currentCase.parent_info.occupation:'';
+document.getElementById('info-age').innerHTML=currentCase.parent_info&&currentCase.parent_info.age?'年龄 '+currentCase.parent_info.age:'';
+document.getElementById('case-bg-box').innerHTML=currentCase.case_bg;
+document.getElementById('info-child').innerHTML=currentCase.child+' ('+currentCase.child_grade+')'+(currentCase.child_problem?'<br>问题: '+currentCase.child_problem:'');
+document.getElementById('info-personality').innerHTML=currentCase.child_info&&currentCase.child_info.personality?currentCase.child_info.personality:(currentCase.emotion||'');
+var concerns=document.getElementById('info-concerns');
+concerns.innerHTML='';
+if(currentCase.parent_info&&currentCase.parent_info.concerns){
+currentCase.parent_info.concerns.forEach(function(c){concerns.innerHTML+='<div class="concern-item">'+c+'</div>';});}
+var products=document.getElementById('info-products');
+products.innerHTML='';
+if(currentCase.products){
+currentCase.products.forEach(function(p){products.innerHTML+='<span class="info-product">'+p+'</span>';});}
+var objections=document.getElementById('info-objections');
+objections.innerHTML='';
+if(currentCase.objections){
+currentCase.objections.forEach(function(o){objections.innerHTML+='<div class="objection-item">'+o+'</div>';});}
+}
+function addMessage(role,content){
+conversation.push({role:role,content:content});
+var m=document.getElementById('chat-messages');
+m.innerHTML+='<div class="message '+role+'"><div class="msg-content">'+content+'</div></div>';
+m.scrollTop=m.scrollHeight;
+}
+async function sendMessage(){
+var input=document.getElementById('user-input');
+var content=input.value.trim();
+if(!content||!currentCase)return;
+if(remainingCount!==-1 && remainingCount <= 0){alert('训练次数已用完');return;}
+input.value='';
+addMessage('consultant',content);
+try{
+var res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:currentCase.id,message:content,conversation:conversation})});
+var data=await res.json();
+addMessage('parent',data.response);
+conversation=data.conversation;
+
+}catch(err){
+addMessage('parent','请再说一遍');
+}
+}
+async function callCoach(){
+if(!currentCase)return;
+document.getElementById('coach-hint-text').innerHTML='正在分析，请稍候...';
+document.getElementById('coach-hint-modal').style.display='flex';
+try{
+var res=await fetch('/api/coach_hint',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:currentCase.id,conversation:conversation})});
+var data=await res.json();
+document.getElementById('coach-hint-text').innerHTML=data.hint;
+}catch(err){
+document.getElementById('coach-hint-text').innerHTML='分析失败，请重试';
+}
+}
+function closeCoachHint(){
+document.getElementById('coach-hint-modal').style.display='none';
+}
+async function endTraining(){
+// 只有点击结束训练才消耗1次（同一会话只扣1次）
+if(remainingCount!==-1 && remainingCount > 0 && !sessionCharged){
+remainingCount--;
+sessionCharged=true;
+document.getElementById('remaining-count').innerHTML=remainingCount;
+document.getElementById('chat-count').innerHTML=remainingCount;
+}
+document.getElementById('feedback-text').innerHTML='正在生成点评报告，请稍候...';
+document.getElementById('feedback-modal').style.display='flex';
+try{
+var res=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:currentCase.id,conversation:conversation})});
+var data=await res.json();
+document.getElementById('feedback-text').innerHTML=data.advice;
+}catch(err){
+document.getElementById('feedback-text').innerHTML='生成失败，请重试';
+}
+}
+function continueTraining(){document.getElementById('feedback-modal').style.display='none';}
+function restartTraining(){
+document.getElementById('feedback-modal').style.display='none';
+document.getElementById('training-page').classList.remove('active');
+document.getElementById('case-list-page').classList.add('active');
+document.getElementById('chat-messages').innerHTML='';
+conversation=[];currentCase=null;sessionCharged=false;
+}
+function showCaseList(){
+conversation=[];
+currentCase=null;
+document.getElementById('chat-messages').innerHTML='';
+document.getElementById('training-page').classList.remove('active');
+document.getElementById('case-list-page').classList.add('active');
+}
+function toggleVoice(){
+var btn=document.querySelector('.voice-btn');
+if(isRecording){
+isRecording=false;
+if(recognition){try{recognition.stop();}catch(e){}}
+recognition=null;
+btn.classList.remove('recording');
+btn.innerHTML='<img src="/static/mic-icon.png" width="24" height="24"/>';
+return;
+}
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){alert('当前浏览器不支持语音输入');return;}
+try{recognition=new SR();}catch(e){alert('语音功能不可用');return;}
+recognition.continuous=false;
+recognition.interimResults=true;
+recognition.lang='zh-CN';
+recognition.maxAlternatives=1;
+recognition.onstart=function(){isRecording=true;btn.classList.add('recording');btn.innerHTML='🔴';};
+recognition.onend=function(){isRecording=false;btn.classList.remove('recording');btn.innerHTML='<img src="/static/mic-icon.png" width="24" height="24"/>';};
+recognition.onresult=function(event){var result=event.results[0];if(result&&result[0]){var text=result[0].transcript;if(text){document.getElementById('user-input').value=text;}}};
+recognition.onerror=function(e){console.log('语音错误:',e.error);isRecording=false;btn.classList.remove('recording');btn.innerHTML='<img src="/static/mic-icon.png" width="24" height="24"/>';};
+try{recognition.start();}catch(e){isRecording=false;btn.classList.remove('recording');btn.innerHTML='<img src="/static/mic-icon.png" width="24" height="24"/>';}}
+
+async function exportPDF(){
+// 导出PDF也消耗1次（同一会话只扣1次）
+if(remainingCount!==-1 && remainingCount > 0 && !sessionCharged){
+remainingCount--;
+sessionCharged=true;
+document.getElementById('remaining-count').innerHTML=remainingCount;
+document.getElementById('chat-count').innerHTML=remainingCount;
+}
+var btn=event.target;
+btn.innerHTML='生成中...';
+var coachAdvice='';
+try{
+var res=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:currentCase.id,conversation:conversation})});
+var data=await res.json();
+coachAdvice=data.advice||'';
+}catch(e){coachAdvice='无法获取训练点评';}
+var now=new Date();
+var timeStr=now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate()+' '+now.getHours()+':'+now.getMinutes()+':'+now.getSeconds();
+var dialogText='';
+conversation.forEach(function(m){
+var speaker=m.role==='parent'?currentCase.parent:'课程顾问(你)';
+dialogText+='<div style="margin:8px 0;padding:8px;background:#f5f5f5;border-radius:6px;">';
+dialogText+='<div style="font-weight:bold;color:#333;margin-bottom:4px;">'+speaker+'</div>';
+dialogText+='<div style="white-space:pre-wrap;color:#000;">'+m.content+'</div>';
+dialogText+='</div>';
+});
+var element=document.createElement('div');
+element.innerHTML='<div style="padding:40px;font-family:Microsoft YaHei,sans-serif;color:#000;background:#fff;">';
+element.innerHTML+='<h1 style="color:#ffab00;text-align:center;">谈单训练记录</h1>';
+element.innerHTML+='<h2 style="border-bottom:2px solid #ffab00;padding-bottom:8px;">案例信息</h2>';
+element.innerHTML+='<p><b>案例: </b>'+currentCase.name+'</p>';
+element.innerHTML+='<p><b>家长: </b>'+currentCase.parent+' ('+(currentCase.parent_title||'妈妈')+')</p>';
+element.innerHTML+='<p><b>学生: </b>'+currentCase.child+'，'+(currentCase.parent_info?currentCase.parent_info.age:'14')+'岁，'+currentCase.child_grade+'</p>';
+element.innerHTML+='<p><b>时间: </b>'+timeStr+'</p>';
+element.innerHTML+='<h2 style="border-bottom:2px solid #ffab00;padding-bottom:8px;margin-top:20px;">对话记录</h2>';
+element.innerHTML+=dialogText;
+if(coachAdvice){
+element.innerHTML+='<h2 style="border-bottom:2px solid #ffab00;padding-bottom:8px;margin-top:20px;">教练点评报告</h2>';
+element.innerHTML+='<div style="background:#f9f9f9;padding:20px;border-radius:8px;white-space:pre-wrap;color:#000;">'+coachAdvice+'</div>';
+}
+element.innerHTML+='<div style="margin-top:40px;text-align:center;color:#999;font-size:12px;">生成于课程顾问谈单模拟训练系统</div>';
+element.innerHTML+='</div>';
+var opt={margin:10,filename:currentCase.name+'_训练记录.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+html2pdf().set(opt).from(element).save();
+btn.innerHTML='📄 导出PDF';
+}</script>
+</body>
+</html>
