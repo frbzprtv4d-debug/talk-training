@@ -1,0 +1,17 @@
+{
+  "VIP-UNLIMITED": {
+    "type": "畅练卡",
+    "usages": -1,
+    "status": "active"
+  },
+  "TIYAN-50EF89": {
+    "type": "体验卡",
+    "usages": 10,
+    "status": "active"
+  },
+  "CHANGLIAN-50EF89": {
+    "type": "畅练卡",
+    "usages": 80,
+    "status": "active"
+  }
+}
