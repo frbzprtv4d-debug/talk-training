@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 谈单模拟训练</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: #121212; color: #fff; min-height: 100vh; }
+.login-page { display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+.login-page.hidden { display: none; }
+.login-box { background: #1a1a1a; padding: 40px; border-radius: 12px; width: 90%; max-width: 360px; }
+.login-box h2 { text-align: center; margin-bottom: 24px; color: #ffab00; }
+.login-box input { width: 100%; padding: 12px; background: #252525; border: 1px solid #333; border-radius: 8px; color: #fff; margin-bottom: 12px; font-size: 14px; }
+.login-box .btn { width: 100%; padding: 12px; background: #ffab00; border: none; border-radius: 8px; color: #000; font-size: 14px; cursor: pointer; }
+.login-box .error { color: #f44; text-align: center; margin-top: 10px; font-size: 13px; }
+.main-content { display: none; }
+.main-content.active { display: block; }
+.admin-header { background: #1a1a1a; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a2a; }
+.admin-header h1 { font-size: 18px; color: #ffab00; }
+.admin-header .logout { color: #888; font-size: 14px; cursor: pointer; }
+.admin-nav { background: #1a1a1a; padding: 12px 20px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a2a; }
+.admin-nav a { color: #888; text-decoration: none; font-size: 14px; padding: 8px 16px; cursor: pointer; border-radius: 6px; transition: 0.2s; }
+.admin-nav a:hover { color: #fff; background: #252525; }
+.admin-nav a.active { color: #ffab00; background: rgba(255,171,0,0.1); }
+.admin-nav a { color: #888; text-decoration: none; font-size: 14px; padding: 8px 0; cursor: pointer; }
+.admin-nav a.active { color: #ffab00; border-bottom: 2px solid #ffab00; }
+.admin-content { padding: 20px; max-width: 1200px; margin: 0 auto; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: #1a1a1a; padding: 20px; border-radius: 12px; text-align: center; }
+.stat-card .num { font-size: 32px; color: #ffab00; font-weight: bold; }
+.stat-card .label { font-size: 13px; color: #888; margin-top: 8px; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #2a2a2a; font-size: 13px; }
+.data-table th { color: #888; font-weight: normal; }
+.data-table td { color: #ccc; }
+.data-table .used { color: #4caf50; }
+.data-table .unused { color: #f44; }
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+.modal-content { background: #1a1a1a; padding: 24px; border-radius: 12px; width: 90%; max-width: 400px; }
+.modal-content h3 { margin-bottom: 16px; }
+.modal-content input, .modal-content select { width: 100%; padding: 10px; background: #252525; border: 1px solid #333; border-radius: 6px; color: #fff; margin-bottom: 12px; }
+.modal-content .btn { padding: 10px 20px; background: #ffab00; border: none; border-radius: 6px; color: #000; cursor: pointer; margin-right: 8px; }
+.modal-content .btn-cancel { background: #333; color: #fff; }
+</style>
+</head>
+<body>
+<div class="login-page" id="login-page">
+<div class="login-box">
+<h2>管理后台登录</h2>
+<input type="text" id="admin-user" placeholder="账号">
+<input type="password" id="admin-pass" placeholder="密码">
+<button class="btn" onclick="doLogin()">登录</button>
+<p class="error" id="login-error"></p>
+</div>
+</div>
+<div class="main-content" id="main-content">
+<div class="admin-header">
+<h1>管理后台</h1>
+<span class="logout" onclick="logout()">退出</span>
+</div>
+<div class="admin-nav">
+<a onclick="showTab('cards')" class="active" id="tab-cards">💳 卡密管理</a>
+<a onclick="showTab('users')" id="tab-users">👥 用户记录</a>
+<a onclick="showTab('stats')" id="tab-stats">📊 数据统计</a>
+<a onclick="showTab('settings')" id="tab-settings">⚙️ 设置</a>
+</div>
+<div class="admin-content">
+<div class="stats-grid">
+<div class="stat-card"><div class="num" id="stat-total">0</div><div class="label">总卡密数</div></div>
+<div class="stat-card"><div class="num" id="stat-active">0</div><div class="label">激活卡密</div></div>
+<div class="stat-card"><div class="num" id="stat-used">0</div><div class="label">已使用次数</div></div>
+<div class="stat-card"><div class="num" id="stat-tiyan">0</div><div class="label">体验卡</div></div>
+<div class="stat-card"><div class="num" id="stat-changlian">0</div><div class="label">畅练卡</div></div>
+</div>
+<button class="btn" onclick="showCreateModal()">+ 创建卡密</button>
+<div id="settings-panel" style="display:none;">
+<h3>修改密码</h3>
+<div style="max-width:400px;">
+<p style="margin-bottom:8px;color:#888;font-size:13px;">新账号</p>
+<input type="text" id="new-user" placeholder="新账号" style="width:100%;padding:10px;background:#252525;border:1px solid #333;border-radius:6px;color:#fff;margin-bottom:16px;">
+<p style="margin-bottom:8px;color:#888;font-size:13px;">新密码</p>
+<input type="password" id="new-pass" placeholder="新密码" style="width:100%;padding:10px;background:#252525;border:1px solid #333;border-radius:6px;color:#fff;margin-bottom:16px;">
+<button class="btn" onclick="saveSettings()">保存设置</button>
+<p id="settings-msg" style="margin-top:10px;color:#4caf50;font-size:13px;"></p>
+</div>
+</div>
+<table class="data-table">
+<thead><tr><th>卡密</th><th>类型</th><th>次数</th><th>状态</th><th>创建时间</th><th>使用时间</th></tr></thead>
+<tbody id="cards-list"></tbody>
+</table>
+</div>
+<div id="create-modal" class="modal">
+<div class="modal-content">
+<h3>创建新卡密</h3>
+<select id="card-type">
+<option value="体验卡">体验卡 (20次)</option>
+<option value="畅练卡">畅练卡 (100次)</option>
+</select>
+<input type="number" id="card-count" placeholder="数量" value="1" min="1" max="10">
+<button class="btn" onclick="createCard()">创建</button>
+<button class="btn btn-cancel" onclick="closeModal()">取消</button>
+</div>
+</div>
+<script>
+var ADMIN_USER='admin';
+var ADMIN_PASS='admin123';
+function doLogin(){
+var user=document.getElementById('admin-user').value;
+var pass=document.getElementById('admin-pass').value;
+if(user===ADMIN_USER&&pass===ADMIN_PASS){
+document.getElementById('login-page').classList.add('hidden');
+document.getElementById('main-content').classList.add('active');
+loadCards();
+loadStats();
+}else{
+document.getElementById('login-error').innerHTML='账号或密码错误';
+}
+}
+function logout(){
+document.getElementById('login-page').classList.remove('hidden');
+document.getElementById('main-content').classList.remove('active');
+document.getElementById('admin-user').value='';
+document.getElementById('admin-pass').value='';
+}
+function saveSettings(){
+var newUser=document.getElementById('new-user').value.trim();
+var newPass=document.getElementById('new-pass').value.trim();
+if(!newUser||!newPass){
+document.getElementById('settings-msg').innerHTML='请填写新账号和密码';
+document.getElementById('settings-msg').style.color='#f44';
+return;
+}
+ADMIN_USER=newUser;
+ADMIN_PASS=newPass;
+document.getElementById('settings-msg').innerHTML='保存成功！';
+document.getElementById('settings-msg').style.color='#4caf50';
+}
+var cards=[];
+var currentTab='cards';
+function showTab(tab){
+currentTab=tab;
+document.querySelectorAll('.admin-nav a').forEach(function(a){a.classList.remove('active');});
+document.getElementById('tab-'+tab).classList.add('active');
+if(tab==='cards'){loadCards();document.getElementById('settings-panel').style.display='none';}
+else if(tab==='users'){loadUsers();document.getElementById('settings-panel').style.display='none';}
+else if(tab==='stats'){loadStats();document.getElementById('settings-panel').style.display='none';}
+else if(tab==='settings'){document.getElementById('settings-panel').style.display='block';}
+}
+async function loadCards(){
+var res=await fetch('/api/admin/cards');
+var data=await res.json();
+cards=data.cards;
+var html='';
+cards.forEach(function(c){
+var status=c.used?'<span class="used">已使用</span>':'<span class="unused">未使用</span>';
+var usedTime=c.used_at||'-';
+html+='<tr><td>'+c.card+'</td><td>'+c.type+'</td><td>'+c.count+'</td><td>'+status+'</td><td>'+c.created_at+'</td><td>'+usedTime+'</td></tr>';
+});
+document.getElementById('cards-list').innerHTML=html;
+}
+async function loadUsers(){
+var res=await fetch('/api/admin/users');
+var data=await res.json();
+var html='<tr><th>卡密</th><th>开始时间</th><th>对话数</th><th>最后活动</th></tr>';
+data.users.forEach(function(u){
+html+='<tr><td>'+u.card+'</td><td>'+u.start_time+'</td><td>'+u.messages+'</td><td>'+u.last_activity+'</td></tr>';
+});
+document.querySelector('.data-table tbody').innerHTML=html;
+}
+async function loadStats(){
+var res=await fetch('/api/admin/stats');
+var data=await res.json();
+document.getElementById('stat-total').innerHTML=data.total_cards || 0;
+document.getElementById('stat-active').innerHTML=data.active_cards || 0;
+document.getElementById('stat-used').innerHTML=data.total_used || 0;
+document.getElementById('stat-tiyan').innerHTML=data.tiyan_count || 0;
+document.getElementById('stat-changlian').innerHTML=data.changlian_count || 0;
+
+// 加载使用记录
+loadUsageRecords();
+}
+
+async function loadUsageRecords(){
+var res=await fetch('/api/admin/usage_records');
+var data=await res.json();
+var tbody=document.getElementById('records-body');
+tbody.innerHTML='';
+data.records.forEach(function(r){
+var row='<tr>';
+row+='<td>'+r.card+'</td>';
+row+='<td>'+r.type+'</td>';
+row+='<td>'+r.initial+'</td>';
+row+='<td>'+r.used+'</td>';
+row+='<td>'+r.remaining+'</td>';
+row+='<td class="'+(r.status=='active'?'used':'unused')+'">'+r.status+'</td>';
+row+='</tr>';
+tbody.innerHTML+=row;
+});
+}
+function showCreateModal(){
+document.getElementById('create-modal').classList.add('active');
+}
+function closeModal(){
+document.getElementById('create-modal').classList.remove('active');
+}
+async function createCard(){
+var type=document.getElementById('card-type').value;
+var count=parseInt(document.getElementById('card-count').value);
+var res=await fetch('/api/admin/create_card',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({type:type,count:count})
+});
+var data=await res.json();
+if(data.success){
+alert('创建成功');
+closeModal();
+loadCards();
+loadStats();
+}else{
+alert('创建失败');
+}
+}
+function logout(){
+window.location.href='/admin/login';
+}
+</script>
+</body>
+</html>
